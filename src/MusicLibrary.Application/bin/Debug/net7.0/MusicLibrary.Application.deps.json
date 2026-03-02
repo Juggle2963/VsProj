@@ -1,0 +1,39 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v7.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v7.0": {
+      "MusicLibrary.Application/1.0.0": {
+        "dependencies": {
+          "MusicLibrary.Domain": "1.0.0"
+        },
+        "runtime": {
+          "MusicLibrary.Application.dll": {}
+        }
+      },
+      "MusicLibrary.Domain/1.0.0": {
+        "runtime": {
+          "MusicLibrary.Domain.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "MusicLibrary.Application/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "MusicLibrary.Domain/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

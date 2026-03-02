@@ -1,0 +1,225 @@
+﻿@page "/"
+@inject IMusicLibraryService MusicLibraryService
+
+<PageTitle>Dashboard - Music Library</PageTitle>
+
+<div class="page-header">
+    <h1>Dashboard</h1>
+    <p>Overview of your music collection</p>
+</div>
+
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-card-icon purple">
+            <span class="oi oi-musical-note"></span>
+        </div>
+        <div class="stat-card-value">@totalSongs</div>
+        <div class="stat-card-label">Total Songs</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-icon teal">
+            <span class="oi oi-people"></span>
+        </div>
+        <div class="stat-card-value">@totalArtists</div>
+        <div class="stat-card-label">Artists</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-icon blue">
+            <span class="oi oi-book"></span>
+        </div>
+        <div class="stat-card-value">@totalAlbums</div>
+        <div class="stat-card-label">Albums</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-icon green">
+            <span class="oi oi-folder"></span>
+        </div>
+        <div class="stat-card-value">@totalDirectories</div>
+        <div class="stat-card-label">Directories</div>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;">
+    <!-- Quick Actions -->
+    <div class="ui-card">
+        <div class="ui-card-header">
+            <h3>Quick Actions</h3>
+        </div>
+        <div class="ui-card-body" style="display:flex;flex-direction:column;gap:0.75rem;">
+            <a href="/music" class="quick-action">
+                <div class="quick-action-icon" style="background:rgba(108,92,231,0.15);color:var(--accent-primary);">
+                    <span class="oi oi-musical-note"></span>
+                </div>
+                <div class="quick-action-text">
+                    <h5>Browse Music</h5>
+                    <p>View and search your entire music collection</p>
+                </div>
+            </a>
+            <a href="/directories" class="quick-action">
+                <div class="quick-action-icon" style="background:rgba(0,206,201,0.15);color:var(--accent-secondary);">
+                    <span class="oi oi-folder"></span>
+                </div>
+                <div class="quick-action-text">
+                    <h5>Manage Directories</h5>
+                    <p>Add, remove, or scan music directories</p>
+                </div>
+            </a>
+            <button class="quick-action" @onclick="ScanAll" disabled="@isScanning">
+                <div class="quick-action-icon" style="background:rgba(81,207,102,0.15);color:var(--accent-success);">
+                    @if (isScanning)
+                    {
+                        <div class="spinner"></div>
+                    }
+                    else
+                    {
+                        <span class="oi oi-reload"></span>
+                    }
+                </div>
+                <div class="quick-action-text">
+                    <h5>@(isScanning ? "Scanning..." : "Scan All Directories")</h5>
+                    <p>@(isScanning ? "Please wait while files are being scanned" : "Scan all directories for new music files")</p>
+                </div>
+            </button>
+        </div>
+    </div>
+
+    <!-- Recent Songs -->
+    <div class="ui-card">
+        <div class="ui-card-header">
+            <h3>Recently Added</h3>
+            <a href="/music" style="font-size:0.8rem;">View all</a>
+        </div>
+        <div class="ui-card-body no-padding">
+            @if (recentSongs.Any())
+            {
+                @foreach (var song in recentSongs)
+                {
+                    <div class="directory-item">
+                        <div class="directory-info">
+                            <div class="directory-name">@(string.IsNullOrEmpty(song.Title) ? song.FileName : song.Title)</div>
+                            <div class="directory-path">@song.Artist@(string.IsNullOrEmpty(song.Album) ? "" : $" — {song.Album}")</div>
+                            <div class="directory-meta">
+                                @if (song.Duration.HasValue)
+                                {
+                                    <span><span class="oi oi-clock"></span> @FormatDuration(song.Duration)</span>
+                                }
+                                <span><span class="oi oi-calendar"></span> @song.DateAdded.ToString("MMM d, yyyy")</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty-state">
+                    <div class="empty-state-icon"><span class="oi oi-musical-note"></span></div>
+                    <h3>No songs yet</h3>
+                    <p>Add scan directories and run a scan to start building your library.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@if (scanResult.HasValue)
+{
+    <div class="alert-modern alert-success-modern" style="margin-top:1rem;">
+        <span class="oi oi-check"></span>
+        Scan completed! Found @scanResult new music files.
+    </div>
+}
+
+<!-- Features -->
+<div style="margin-top:2rem;">
+    <h3 style="font-size:1.1rem;margin-bottom:0.25rem;">Features</h3>
+    <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1rem;">Everything you need to manage your music collection</p>
+    <div class="feature-grid">
+        <div class="feature-card">
+            <div class="feature-card-icon" style="background:rgba(108,92,231,0.15);color:var(--accent-primary);">
+                <span class="oi oi-magnifying-glass"></span>
+            </div>
+            <h4>Smart Scanning</h4>
+            <p>Automatically detect MP3, FLAC, WAV, M4A, AAC, OGG, and WMA files from your directories.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-card-icon" style="background:rgba(0,206,201,0.15);color:var(--accent-secondary);">
+                <span class="oi oi-tags"></span>
+            </div>
+            <h4>Metadata Extraction</h4>
+            <p>Extract title, artist, album, duration, year, genre, bitrate, and more from each file.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-card-icon" style="background:rgba(51,154,240,0.15);color:var(--accent-info);">
+                <span class="oi oi-spreadsheet"></span>
+            </div>
+            <h4>Search &amp; Filter</h4>
+            <p>Quickly find songs by title, artist, album, or genre with real-time search.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-card-icon" style="background:rgba(81,207,102,0.15);color:var(--accent-success);">
+                <span class="oi oi-folder"></span>
+            </div>
+            <h4>Multi-Directory</h4>
+            <p>Manage multiple scan directories and keep your entire collection organized in one place.</p>
+        </div>
+    </div>
+</div>
+
+@code {
+    private int totalSongs;
+    private int totalArtists;
+    private int totalAlbums;
+    private int totalDirectories;
+    private List<MusicFile> recentSongs = new();
+    private bool isScanning = false;
+    private int? scanResult;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadStats();
+    }
+
+    private async Task LoadStats()
+    {
+        var allFiles = (await MusicLibraryService.GetAllMusicFilesAsync()).ToList();
+        var directories = (await MusicLibraryService.GetScanDirectoriesAsync()).ToList();
+
+        totalSongs = allFiles.Count;
+        totalArtists = allFiles.Where(f => !string.IsNullOrEmpty(f.Artist)).Select(f => f.Artist).Distinct().Count();
+        totalAlbums = allFiles.Where(f => !string.IsNullOrEmpty(f.Album)).Select(f => f.Album).Distinct().Count();
+        totalDirectories = directories.Count;
+        recentSongs = allFiles.OrderByDescending(f => f.DateAdded).Take(5).ToList();
+    }
+
+    private async Task ScanAll()
+    {
+        isScanning = true;
+        scanResult = null;
+        StateHasChanged();
+
+        try
+        {
+            scanResult = await MusicLibraryService.ScanAllDirectoriesAsync();
+            await LoadStats();
+        }
+        catch
+        {
+            // Silent fail for dashboard
+        }
+        finally
+        {
+            isScanning = false;
+            StateHasChanged();
+        }
+    }
+
+    private string FormatDuration(TimeSpan? duration)
+    {
+        if (!duration.HasValue) return "-";
+        var ts = duration.Value;
+        return ts.TotalHours >= 1
+            ? $"{ts.Hours}:{ts.Minutes:D2}:{ts.Seconds:D2}"
+            : $"{ts.Minutes}:{ts.Seconds:D2}";
+    }
+}

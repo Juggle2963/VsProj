@@ -1,0 +1,15 @@
+C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Application\bin\Debug\net7.0\MusicLibrary.Application.deps.json
+C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Application\bin\Debug\net7.0\MusicLibrary.Application.dll
+C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Application\bin\Debug\net7.0\MusicLibrary.Application.pdb
+C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Application\bin\Debug\net7.0\MusicLibrary.Domain.dll
+C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Application\bin\Debug\net7.0\MusicLibrary.Domain.pdb
+C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Application\obj\Debug\net7.0\MusicLibrary.Application.csproj.AssemblyReference.cache
+C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Application\obj\Debug\net7.0\MusicLibrary.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Application\obj\Debug\net7.0\MusicLibrary.Application.AssemblyInfoInputs.cache
+C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Application\obj\Debug\net7.0\MusicLibrary.Application.AssemblyInfo.cs
+C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Application\obj\Debug\net7.0\MusicLibrary.Application.csproj.CoreCompileInputs.cache
+C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Application\obj\Debug\net7.0\MusicLib.EF9B223E.Up2Date
+C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Application\obj\Debug\net7.0\MusicLibrary.Application.dll
+C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Application\obj\Debug\net7.0\refint\MusicLibrary.Application.dll
+C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Application\obj\Debug\net7.0\MusicLibrary.Application.pdb
+C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Application\obj\Debug\net7.0\ref\MusicLibrary.Application.dll

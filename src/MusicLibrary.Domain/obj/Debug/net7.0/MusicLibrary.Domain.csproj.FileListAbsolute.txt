@@ -1,0 +1,11 @@
+C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Domain\bin\Debug\net7.0\MusicLibrary.Domain.deps.json
+C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Domain\bin\Debug\net7.0\MusicLibrary.Domain.dll
+C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Domain\bin\Debug\net7.0\MusicLibrary.Domain.pdb
+C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Domain\obj\Debug\net7.0\MusicLibrary.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Domain\obj\Debug\net7.0\MusicLibrary.Domain.AssemblyInfoInputs.cache
+C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Domain\obj\Debug\net7.0\MusicLibrary.Domain.AssemblyInfo.cs
+C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Domain\obj\Debug\net7.0\MusicLibrary.Domain.csproj.CoreCompileInputs.cache
+C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Domain\obj\Debug\net7.0\MusicLibrary.Domain.dll
+C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Domain\obj\Debug\net7.0\refint\MusicLibrary.Domain.dll
+C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Domain\obj\Debug\net7.0\MusicLibrary.Domain.pdb
+C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Domain\obj\Debug\net7.0\ref\MusicLibrary.Domain.dll

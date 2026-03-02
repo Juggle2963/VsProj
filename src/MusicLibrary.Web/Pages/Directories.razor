@@ -1,0 +1,301 @@
+@page "/directories"
+@inject IMusicLibraryService MusicLibraryService
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Scan Directories - Music Library</PageTitle>
+
+<div class="page-header">
+    <h1>Scan Directories</h1>
+    <p>Manage the folders that are scanned for music files</p>
+</div>
+
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div class="alert-modern alert-success-modern">
+        <span class="oi oi-check"></span>
+        @successMessage
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert-modern alert-danger-modern">
+        <span class="oi oi-warning"></span>
+        @errorMessage
+    </div>
+}
+
+@if (isScanning)
+{
+    <div class="alert-modern alert-info-modern">
+        <div class="spinner"></div>
+        Scanning all directories for music files...
+    </div>
+}
+
+<!-- Toolbar -->
+<div class="toolbar">
+    <div class="toolbar-left">
+        <span style="font-size:0.85rem;color:var(--text-secondary);">
+            @directories.Count @(directories.Count == 1 ? "directory" : "directories") configured
+        </span>
+    </div>
+    <div class="toolbar-right">
+        <button class="btn-modern btn-ghost" @onclick="ScanAll" disabled="@isScanning">
+            <span class="oi oi-reload"></span> Scan All
+        </button>
+        <button class="btn-modern btn-primary-modern" @onclick="ShowAddModal">
+            <span class="oi oi-plus"></span> Add Directory
+        </button>
+    </div>
+</div>
+
+<!-- Directories List -->
+<div class="ui-card">
+    <div class="ui-card-body no-padding">
+        @if (directories.Any())
+        {
+            @foreach (var dir in directories)
+            {
+                <div class="directory-item">
+                    <div class="directory-info">
+                        <div class="directory-name">
+                            @dir.Name
+                            @if (dir.IsActive)
+                            {
+                                <span class="badge-modern badge-green" style="margin-left:0.5rem;">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge-modern badge-red" style="margin-left:0.5rem;">Inactive</span>
+                            }
+                        </div>
+                        <div class="directory-path">@dir.Path</div>
+                        <div class="directory-meta">
+                            <span>
+                                <span class="oi oi-musical-note"></span>
+                                @dir.MusicFiles.Count @(dir.MusicFiles.Count == 1 ? "file" : "files")
+                            </span>
+                            <span>
+                                <span class="oi oi-calendar"></span>
+                                Added @dir.CreatedDate.ToString("MMM d, yyyy")
+                            </span>
+                            @if (dir.LastScanDate.HasValue)
+                            {
+                                <span>
+                                    <span class="oi oi-clock"></span>
+                                    Last scan: @dir.LastScanDate.Value.ToString("MMM d, yyyy h:mm tt")
+                                </span>
+                            }
+                            else
+                            {
+                                <span style="color:var(--accent-warning);">
+                                    <span class="oi oi-warning"></span>
+                                    Never scanned
+                                </span>
+                            }
+                        </div>
+                    </div>
+                    <div class="directory-actions">
+                        <button class="btn-icon danger" title="Remove directory" @onclick="() => RemoveDirectory(dir.Id, dir.Name)">
+                            <span class="oi oi-trash"></span>
+                        </button>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <span class="oi oi-folder"></span>
+                </div>
+                <h3>No directories configured</h3>
+                <p>Add a scan directory to start building your music library. Point it to any folder containing music files.</p>
+                <button class="btn-modern btn-primary-modern" style="margin-top:1rem;" @onclick="ShowAddModal">
+                    <span class="oi oi-plus"></span> Add Your First Directory
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Add Directory Modal -->
+@if (showModal)
+{
+    <div class="modal-overlay" @onclick="HideModal">
+        <div class="modal-panel" @onclick:stopPropagation="true">
+            <div class="modal-panel-header">
+                <h3>Add Scan Directory</h3>
+                <button class="btn-icon" @onclick="HideModal">
+                    <span class="oi oi-x"></span>
+                </button>
+            </div>
+            <div class="modal-panel-body">
+                <div class="form-modern">
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">Directory Name</label>
+                        <input type="text" class="form-input-modern" placeholder="e.g. My Music Collection"
+                               @bind="newName" />
+                        <span class="form-hint">A friendly name to identify this directory</span>
+                    </div>
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">Directory Path</label>
+                        <input type="text" class="form-input-modern" placeholder="e.g. C:\Users\Music"
+                               @bind="newPath" />
+                        <span class="form-hint">Full path to the folder containing music files</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-panel-footer">
+                <button class="btn-modern btn-ghost" @onclick="HideModal">Cancel</button>
+                <button class="btn-modern btn-primary-modern" @onclick="AddDirectory">
+                    <span class="oi oi-plus"></span> Add Directory
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Confirm Delete Modal -->
+@if (showDeleteConfirm)
+{
+    <div class="modal-overlay" @onclick="CancelDelete">
+        <div class="modal-panel" @onclick:stopPropagation="true">
+            <div class="modal-panel-header">
+                <h3>Remove Directory</h3>
+                <button class="btn-icon" @onclick="CancelDelete">
+                    <span class="oi oi-x"></span>
+                </button>
+            </div>
+            <div class="modal-panel-body">
+                <p style="color:var(--text-secondary);font-size:0.9rem;">
+                    Are you sure you want to remove <strong style="color:var(--text-primary);">@deleteDirectoryName</strong>? 
+                    This will not delete any files from your computer.
+                </p>
+            </div>
+            <div class="modal-panel-footer">
+                <button class="btn-modern btn-ghost" @onclick="CancelDelete">Cancel</button>
+                <button class="btn-modern btn-danger-modern" @onclick="ConfirmDelete">
+                    <span class="oi oi-trash"></span> Remove
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<ScanDirectory> directories = new();
+    private bool showModal = false;
+    private bool showDeleteConfirm = false;
+    private bool isScanning = false;
+    private string newName = "";
+    private string newPath = "";
+    private string? successMessage;
+    private string? errorMessage;
+    private int deleteDirectoryId;
+    private string deleteDirectoryName = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDirectories();
+    }
+
+    private async Task LoadDirectories()
+    {
+        directories = (await MusicLibraryService.GetScanDirectoriesAsync()).ToList();
+    }
+
+    private void ShowAddModal()
+    {
+        newName = "";
+        newPath = "";
+        errorMessage = null;
+        showModal = true;
+    }
+
+    private void HideModal()
+    {
+        showModal = false;
+    }
+
+    private async Task AddDirectory()
+    {
+        errorMessage = null;
+        successMessage = null;
+
+        if (string.IsNullOrWhiteSpace(newName) || string.IsNullOrWhiteSpace(newPath))
+        {
+            errorMessage = "Please provide both a name and path.";
+            return;
+        }
+
+        try
+        {
+            await MusicLibraryService.AddScanDirectoryAsync(newPath.Trim(), newName.Trim());
+            await LoadDirectories();
+            showModal = false;
+            successMessage = $"Directory \"{newName.Trim()}\" added successfully.";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+
+    private void RemoveDirectory(int id, string name)
+    {
+        deleteDirectoryId = id;
+        deleteDirectoryName = name;
+        showDeleteConfirm = true;
+    }
+
+    private void CancelDelete()
+    {
+        showDeleteConfirm = false;
+    }
+
+    private async Task ConfirmDelete()
+    {
+        errorMessage = null;
+        successMessage = null;
+
+        try
+        {
+            var name = deleteDirectoryName;
+            await MusicLibraryService.RemoveScanDirectoryAsync(deleteDirectoryId);
+            await LoadDirectories();
+            showDeleteConfirm = false;
+            successMessage = $"Directory \"{name}\" has been removed.";
+        }
+        catch (Exception ex)
+        {
+            showDeleteConfirm = false;
+            errorMessage = $"Error removing directory: {ex.Message}";
+        }
+    }
+
+    private async Task ScanAll()
+    {
+        isScanning = true;
+        errorMessage = null;
+        successMessage = null;
+        StateHasChanged();
+
+        try
+        {
+            var count = await MusicLibraryService.ScanAllDirectoriesAsync();
+            await LoadDirectories();
+            successMessage = $"Scan completed! Found {count} music files.";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error during scan: {ex.Message}";
+        }
+        finally
+        {
+            isScanning = false;
+            StateHasChanged();
+        }
+    }
+}

@@ -1,0 +1,317 @@
+@page "/music"
+@inject IMusicLibraryService MusicLibraryService
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Music Library</PageTitle>
+
+<div class="page-header">
+    <h1>Music Library</h1>
+    <p>Browse and search your music collection</p>
+</div>
+
+@if (isScanning)
+{
+    <div class="alert-modern alert-info-modern">
+        <div class="spinner"></div>
+        Scanning directories for music files...
+    </div>
+}
+
+@if (scanResult.HasValue)
+{
+    <div class="alert-modern alert-success-modern">
+        <span class="oi oi-check"></span>
+        Scan completed! Found @scanResult music files.
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert-modern alert-danger-modern">
+        <span class="oi oi-warning"></span>
+        @errorMessage
+    </div>
+}
+
+<!-- Toolbar -->
+<div class="toolbar">
+    <div class="toolbar-left">
+        <div class="search-container">
+            <span class="oi oi-magnifying-glass"></span>
+            <input type="text" class="search-input" placeholder="Search by title, artist, or album..."
+                   @bind="searchQuery" @bind:event="oninput" @onkeyup="OnSearchChanged" />
+        </div>
+        <select class="select-modern" @bind="genreFilter" @bind:after="ApplyFilters">
+            <option value="">All Genres</option>
+            @foreach (var genre in availableGenres)
+            {
+                <option value="@genre">@genre</option>
+            }
+        </select>
+    </div>
+    <div class="toolbar-right">
+        <button class="btn-modern btn-primary-modern" @onclick="ScanDirectories" disabled="@isScanning">
+            <span class="oi oi-reload"></span> Scan All
+        </button>
+    </div>
+</div>
+
+<!-- Music Table Card -->
+<div class="ui-card">
+    <div class="ui-card-header">
+        <h3>
+            @filteredFiles.Count songs
+            @if (!string.IsNullOrEmpty(searchQuery) || !string.IsNullOrEmpty(genreFilter))
+            {
+                <span style="font-weight:400;color:var(--text-muted);font-size:0.85rem;"> (filtered from @allFiles.Count)</span>
+            }
+        </h3>
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+            <span style="font-size:0.78rem;color:var(--text-muted);">Per page:</span>
+            <select class="select-modern" @bind="pageSize" @bind:after="ResetPage" style="min-width:70px;">
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+        </div>
+    </div>
+    <div class="ui-card-body no-padding">
+        @if (pagedFiles.Any())
+        {
+            <div style="overflow-x:auto;">
+                <table class="music-table">
+                    <thead>
+                        <tr>
+                            <th style="width:40px;">#</th>
+                            <th>Title</th>
+                            <th>Artist</th>
+                            <th>Album</th>
+                            <th>Genre</th>
+                            <th>Year</th>
+                            <th>Duration</th>
+                            <th>Bitrate</th>
+                            <th>Format</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{ int rowNum = (currentPage - 1) * pageSize; }
+                        @foreach (var file in pagedFiles)
+                        {
+                            rowNum++;
+                            <tr>
+                                <td class="track-number">@rowNum</td>
+                                <td>
+                                    <div class="song-title">@(string.IsNullOrEmpty(file.Title) ? file.FileName : file.Title)</div>
+                                </td>
+                                <td class="song-artist">@(string.IsNullOrEmpty(file.Artist) ? "—" : file.Artist)</td>
+                                <td class="song-meta">@(string.IsNullOrEmpty(file.Album) ? "—" : file.Album)</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(file.Genre))
+                                    {
+                                        <span class="badge-modern badge-purple">@file.Genre</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="song-meta">—</span>
+                                    }
+                                </td>
+                                <td class="song-meta">@(file.Year?.ToString() ?? "—")</td>
+                                <td class="song-duration">@FormatDuration(file.Duration)</td>
+                                <td class="song-meta">@(file.Bitrate.HasValue ? $"{file.Bitrate}k" : "—")</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(file.FileExtension))
+                                    {
+                                        <span class="badge-modern badge-teal">@file.FileExtension.TrimStart('.').ToUpper()</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination-bar">
+                <div class="pagination-info">
+                    Showing @((currentPage - 1) * pageSize + 1)–@(Math.Min(currentPage * pageSize, filteredFiles.Count)) of @filteredFiles.Count
+                </div>
+                <div class="pagination-controls">
+                    <button class="page-btn" disabled="@(currentPage <= 1)" @onclick="() => GoToPage(1)">
+                        <span class="oi oi-media-skip-backward" style="font-size:0.65rem;"></span>
+                    </button>
+                    <button class="page-btn" disabled="@(currentPage <= 1)" @onclick="() => GoToPage(currentPage - 1)">
+                        <span class="oi oi-chevron-left" style="font-size:0.65rem;"></span>
+                    </button>
+                    @foreach (var p in GetPageNumbers())
+                    {
+                        <button class="page-btn @(p == currentPage ? "active" : "")" @onclick="() => GoToPage(p)">
+                            @p
+                        </button>
+                    }
+                    <button class="page-btn" disabled="@(currentPage >= totalPages)" @onclick="() => GoToPage(currentPage + 1)">
+                        <span class="oi oi-chevron-right" style="font-size:0.65rem;"></span>
+                    </button>
+                    <button class="page-btn" disabled="@(currentPage >= totalPages)" @onclick="() => GoToPage(totalPages)">
+                        <span class="oi oi-media-skip-forward" style="font-size:0.65rem;"></span>
+                    </button>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <div class="empty-state-icon"><span class="oi oi-musical-note"></span></div>
+                @if (!string.IsNullOrEmpty(searchQuery) || !string.IsNullOrEmpty(genreFilter))
+                {
+                    <h3>No matching songs</h3>
+                    <p>Try adjusting your search or filter criteria.</p>
+                    <button class="btn-modern btn-ghost" style="margin-top:0.75rem;" @onclick="ClearFilters">
+                        <span class="oi oi-x"></span> Clear Filters
+                    </button>
+                }
+                else
+                {
+                    <h3>No music files found</h3>
+                    <p>Add some scan directories and run a scan to start building your library.</p>
+                    <a href="/directories" class="btn-modern btn-primary-modern" style="margin-top:0.75rem;">
+                        <span class="oi oi-folder"></span> Manage Directories
+                    </a>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private List<MusicFile> allFiles = new();
+    private List<MusicFile> filteredFiles = new();
+    private List<MusicFile> pagedFiles = new();
+    private List<string> availableGenres = new();
+    private bool isScanning = false;
+    private int? scanResult;
+    private string? errorMessage;
+
+    // Search & Filter
+    private string searchQuery = "";
+    private string genreFilter = "";
+
+    // Pagination
+    private int currentPage = 1;
+    private int pageSize = 25;
+    private int totalPages => (int)Math.Ceiling((double)filteredFiles.Count / pageSize);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        allFiles = (await MusicLibraryService.GetAllMusicFilesAsync()).ToList();
+        availableGenres = allFiles
+            .Where(f => !string.IsNullOrEmpty(f.Genre))
+            .Select(f => f.Genre)
+            .Distinct()
+            .OrderBy(g => g)
+            .ToList();
+        ApplyFilters();
+    }
+
+    private void OnSearchChanged()
+    {
+        currentPage = 1;
+        ApplyFilters();
+    }
+
+    private void ApplyFilters()
+    {
+        var query = allFiles.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(searchQuery))
+        {
+            var search = searchQuery.Trim().ToLower();
+            query = query.Where(f =>
+                (f.Title?.ToLower().Contains(search) == true) ||
+                (f.Artist?.ToLower().Contains(search) == true) ||
+                (f.Album?.ToLower().Contains(search) == true) ||
+                (f.FileName?.ToLower().Contains(search) == true));
+        }
+
+        if (!string.IsNullOrEmpty(genreFilter))
+        {
+            query = query.Where(f => f.Genre == genreFilter);
+        }
+
+        filteredFiles = query.ToList();
+        UpdatePage();
+    }
+
+    private void ClearFilters()
+    {
+        searchQuery = "";
+        genreFilter = "";
+        currentPage = 1;
+        ApplyFilters();
+    }
+
+    private void ResetPage()
+    {
+        currentPage = 1;
+        UpdatePage();
+    }
+
+    private void UpdatePage()
+    {
+        if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+        pagedFiles = filteredFiles.Skip((currentPage - 1) * pageSize).Take(pageSize).ToList();
+    }
+
+    private void GoToPage(int page)
+    {
+        currentPage = page;
+        UpdatePage();
+    }
+
+    private List<int> GetPageNumbers()
+    {
+        var pages = new List<int>();
+        int start = Math.Max(1, currentPage - 2);
+        int end = Math.Min(totalPages, start + 4);
+        start = Math.Max(1, end - 4);
+        for (int i = start; i <= end; i++) pages.Add(i);
+        return pages;
+    }
+
+    private async Task ScanDirectories()
+    {
+        isScanning = true;
+        scanResult = null;
+        errorMessage = null;
+        StateHasChanged();
+
+        try
+        {
+            scanResult = await MusicLibraryService.ScanAllDirectoriesAsync();
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error during scan: {ex.Message}";
+        }
+        finally
+        {
+            isScanning = false;
+            StateHasChanged();
+        }
+    }
+
+    private string FormatDuration(TimeSpan? duration)
+    {
+        if (!duration.HasValue) return "—";
+        var ts = duration.Value;
+        return ts.TotalHours >= 1
+            ? $"{ts.Hours}:{ts.Minutes:D2}:{ts.Seconds:D2}"
+            : $"{ts.Minutes}:{ts.Seconds:D2}";
+    }
+}

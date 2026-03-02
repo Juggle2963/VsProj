@@ -1,0 +1,36 @@
+﻿@inherits LayoutComponentBase
+
+<PageTitle>Music Library</PageTitle>
+
+<div class="page-wrapper">
+    <aside class="sidebar @(sidebarOpen ? "open" : "")">
+        <NavMenu />
+    </aside>
+
+    <div class="main-content">
+        <header class="top-bar">
+            <div style="display:flex;align-items:center;gap:0.75rem;">
+                <button class="mobile-toggle" @onclick="ToggleSidebar">
+                    <span class="oi oi-menu"></span>
+                </button>
+                <span class="top-bar-title">Music Library</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:1rem;">
+                <span style="font-size:0.8rem;color:var(--text-muted);">@DateTime.Now.ToString("dddd, MMMM d")</span>
+            </div>
+        </header>
+
+        <div class="content-area">
+            @Body
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool sidebarOpen = false;
+
+    private void ToggleSidebar()
+    {
+        sidebarOpen = !sidebarOpen;
+    }
+}
