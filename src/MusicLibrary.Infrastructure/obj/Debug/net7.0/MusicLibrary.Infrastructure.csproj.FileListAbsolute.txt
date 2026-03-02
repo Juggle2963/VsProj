@@ -17,3 +17,4 @@ C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Infrastructure\obj\Debug\net7.0
 C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Infrastructure\obj\Debug\net7.0\MusicLibrary.Infrastructure.pdb
 C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Infrastructure\obj\Debug\net7.0\MusicLibrary.Infrastructure.genruntimeconfig.cache
 C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Infrastructure\obj\Debug\net7.0\ref\MusicLibrary.Infrastructure.dll
+C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Infrastructure\obj\Debug\net7.0\MusicLibrary.Infrastructure.sourcelink.json

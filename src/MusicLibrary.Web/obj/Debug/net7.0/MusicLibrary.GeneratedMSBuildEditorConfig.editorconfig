@@ -38,6 +38,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTXVzaWNMaWJyYXJ5LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/Johan/Downloads/VsProj/src/MusicLibrary.Web/Shared/PlayerBar.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXFBsYXllckJhci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/Johan/Downloads/VsProj/src/MusicLibrary.Web/Shared/SurveyPrompt.razor]
 build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXFN1cnZleVByb21wdC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 

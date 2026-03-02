@@ -13,3 +13,4 @@ C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Application\obj\Debug\net7.0\Mu
 C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Application\obj\Debug\net7.0\refint\MusicLibrary.Application.dll
 C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Application\obj\Debug\net7.0\MusicLibrary.Application.pdb
 C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Application\obj\Debug\net7.0\ref\MusicLibrary.Application.dll
+C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Application\obj\Debug\net7.0\MusicLibrary.Application.sourcelink.json

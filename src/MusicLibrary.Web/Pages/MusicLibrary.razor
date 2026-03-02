@@ -1,6 +1,7 @@
 @page "/music"
 @inject IMusicLibraryService MusicLibraryService
 @inject IJSRuntime JSRuntime
+@inject PlayerState Player
 
 <PageTitle>Music Library</PageTitle>
 
@@ -82,6 +83,7 @@
                 <table class="music-table">
                     <thead>
                         <tr>
+                            <th style="width:40px;"></th>
                             <th style="width:40px;">#</th>
                             <th>Title</th>
                             <th>Artist</th>
@@ -98,7 +100,19 @@
                         @foreach (var file in pagedFiles)
                         {
                             rowNum++;
-                            <tr>
+                            <tr @ondblclick="() => PlayTrack(file)" style="cursor:pointer;">
+                                <td>
+                                    <button class="btn-icon" style="width:30px;height:30px;border:none;" @onclick="() => PlayTrack(file)" title="Play">
+                                        @if (Player.CurrentTrack?.Id == file.Id && Player.IsPlaying)
+                                        {
+                                            <span class="oi oi-media-pause" style="font-size:0.7rem;color:var(--accent-primary);"></span>
+                                        }
+                                        else
+                                        {
+                                            <span class="oi oi-media-play" style="font-size:0.7rem;"></span>
+                                        }
+                                    </button>
+                                </td>
                                 <td class="track-number">@rowNum</td>
                                 <td>
                                     <div class="song-title">@(string.IsNullOrEmpty(file.Title) ? file.FileName : file.Title)</div>
@@ -304,6 +318,20 @@
             isScanning = false;
             StateHasChanged();
         }
+    }
+
+    private async Task PlayTrack(MusicFile file)
+    {
+        var index = filteredFiles.IndexOf(file);
+        if (index >= 0)
+        {
+            Player.PlayQueue(filteredFiles, index);
+        }
+        else
+        {
+            Player.SetTrack(file);
+        }
+        await Task.CompletedTask;
     }
 
     private string FormatDuration(TimeSpan? duration)

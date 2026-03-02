@@ -9,3 +9,4 @@ C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Domain\obj\Debug\net7.0\MusicLi
 C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Domain\obj\Debug\net7.0\refint\MusicLibrary.Domain.dll
 C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Domain\obj\Debug\net7.0\MusicLibrary.Domain.pdb
 C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Domain\obj\Debug\net7.0\ref\MusicLibrary.Domain.dll
+C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Domain\obj\Debug\net7.0\MusicLibrary.Domain.sourcelink.json

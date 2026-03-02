@@ -84,3 +84,4 @@ C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Web\bin\Debug\net7.0\Microsoft.
 C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Web\bin\Debug\net7.0\Microsoft.Extensions.DependencyModel.dll
 C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Web\bin\Debug\net7.0\Mono.TextTemplating.dll
 C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Web\bin\Debug\net7.0\System.CodeDom.dll
+C:\Users\Johan\Downloads\VsProj\src\MusicLibrary.Web\obj\Debug\net7.0\MusicLibrary.sourcelink.json

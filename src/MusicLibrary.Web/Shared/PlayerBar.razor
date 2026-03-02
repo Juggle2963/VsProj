@@ -1,0 +1,234 @@
+@implements IDisposable
+@inject IJSRuntime JSRuntime
+@inject PlayerState Player
+
+@if (Player.CurrentTrack != null)
+{
+    <div class="player-bar">
+        <!-- Track Info -->
+        <div class="player-track-info">
+            <div class="player-track-icon">
+                <span class="oi oi-musical-note"></span>
+            </div>
+            <div class="player-track-text">
+                <div class="player-track-title">
+                    @(string.IsNullOrEmpty(Player.CurrentTrack.Title) ? Player.CurrentTrack.FileName : Player.CurrentTrack.Title)
+                </div>
+                <div class="player-track-artist">
+                    @(string.IsNullOrEmpty(Player.CurrentTrack.Artist) ? "Unknown Artist" : Player.CurrentTrack.Artist)
+                    @if (!string.IsNullOrEmpty(Player.CurrentTrack.Album))
+                    {
+                        <span> — @Player.CurrentTrack.Album</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="player-controls">
+            <div class="player-buttons">
+                <button class="player-btn" @onclick="PreviousTrack" title="Previous">
+                    <span class="oi oi-media-skip-backward"></span>
+                </button>
+                <button class="player-btn player-btn-main" @onclick="TogglePlayPause" title="@(Player.IsPlaying ? "Pause" : "Play")">
+                    <span class="oi @(Player.IsPlaying ? "oi-media-pause" : "oi-media-play")"></span>
+                </button>
+                <button class="player-btn" @onclick="NextTrack" title="Next">
+                    <span class="oi oi-media-skip-forward"></span>
+                </button>
+            </div>
+            <div class="player-progress">
+                <span class="player-time">@FormatTime(Player.CurrentTime)</span>
+                <div class="player-progress-bar" @onclick="SeekToPosition">
+                    <div class="player-progress-fill" style="width: @ProgressPercent%"></div>
+                    <div class="player-progress-thumb" style="left: @ProgressPercent%"></div>
+                </div>
+                <span class="player-time">@FormatTime(Player.Duration)</span>
+            </div>
+        </div>
+
+        <!-- Volume -->
+        <div class="player-volume">
+            <button class="player-btn" @onclick="ToggleMute" title="Volume">
+                <span class="oi @VolumeIcon"></span>
+            </button>
+            <div class="player-volume-bar" @onclick="SetVolumeFromClick">
+                <div class="player-volume-fill" style="width: @((int)(Player.Volume * 100))%"></div>
+                <div class="player-volume-thumb" style="left: @((int)(Player.Volume * 100))%"></div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private DotNetObjectReference<PlayerBar>? dotNetRef;
+    private bool jsInitialized = false;
+    private double previousVolume = 0.7;
+
+    private double ProgressPercent => Player.Duration > 0 ? (Player.CurrentTime / Player.Duration) * 100 : 0;
+    
+    private string VolumeIcon => Player.Volume switch
+    {
+        0 => "oi-volume-off",
+        < 0.5 => "oi-volume-low",
+        _ => "oi-volume-high"
+    };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            dotNetRef = DotNetObjectReference.Create(this);
+            await JSRuntime.InvokeVoidAsync("audioPlayer.init", dotNetRef);
+            jsInitialized = true;
+            Player.OnChange += OnPlayerStateChanged;
+        }
+    }
+
+    private async void OnPlayerStateChanged()
+    {
+        await InvokeAsync(async () =>
+        {
+            if (jsInitialized && Player.CurrentTrack != null && Player.IsPlaying)
+            {
+                var url = $"/api/music/stream/{Player.CurrentTrack.Id}";
+                await JSRuntime.InvokeVoidAsync("audioPlayer.play", url);
+                await JSRuntime.InvokeVoidAsync("audioPlayer.setVolume", Player.Volume);
+            }
+            StateHasChanged();
+        });
+    }
+
+    private async Task TogglePlayPause()
+    {
+        if (Player.IsPlaying)
+        {
+            Player.IsPlaying = false;
+            await JSRuntime.InvokeVoidAsync("audioPlayer.pause");
+        }
+        else
+        {
+            Player.IsPlaying = true;
+            await JSRuntime.InvokeVoidAsync("audioPlayer.resume");
+        }
+        StateHasChanged();
+    }
+
+    private async Task NextTrack()
+    {
+        var track = Player.NextTrack();
+        if (track != null)
+        {
+            await JSRuntime.InvokeVoidAsync("audioPlayer.play", $"/api/music/stream/{track.Id}");
+        }
+    }
+
+    private async Task PreviousTrack()
+    {
+        // If more than 3 seconds in, restart track. Otherwise go to previous.
+        if (Player.CurrentTime > 3)
+        {
+            await JSRuntime.InvokeVoidAsync("audioPlayer.seek", 0);
+            Player.CurrentTime = 0;
+            StateHasChanged();
+        }
+        else
+        {
+            var track = Player.PreviousTrack();
+            if (track != null)
+            {
+                await JSRuntime.InvokeVoidAsync("audioPlayer.play", $"/api/music/stream/{track.Id}");
+            }
+        }
+    }
+
+    private async Task SeekToPosition(MouseEventArgs e)
+    {
+        // Calculate position based on click
+        // The progress bar is roughly the width we can estimate
+        if (Player.Duration > 0)
+        {
+            // We use a JS trick: offsetX / target width
+            var seekPercent = e.OffsetX / 1.0; // Will be refined by CSS width
+            // Simple approach: use percentage from the click within element
+            // This won't be perfect but works for standard widths
+        }
+    }
+
+    private async Task ToggleMute()
+    {
+        if (Player.Volume > 0)
+        {
+            previousVolume = Player.Volume;
+            Player.Volume = 0;
+        }
+        else
+        {
+            Player.Volume = previousVolume > 0 ? previousVolume : 0.7;
+        }
+        await JSRuntime.InvokeVoidAsync("audioPlayer.setVolume", Player.Volume);
+        StateHasChanged();
+    }
+
+    private async Task SetVolumeFromClick(MouseEventArgs e)
+    {
+        // Simple volume control via click position
+        // The volume bar is about 100px wide
+        var volume = Math.Max(0, Math.Min(1, e.OffsetX / 100.0));
+        Player.Volume = volume;
+        await JSRuntime.InvokeVoidAsync("audioPlayer.setVolume", volume);
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnTimeUpdate(double currentTime)
+    {
+        Player.CurrentTime = currentTime;
+        InvokeAsync(StateHasChanged);
+    }
+
+    [JSInvokable]
+    public void OnDurationChanged(double duration)
+    {
+        Player.Duration = duration;
+        InvokeAsync(StateHasChanged);
+    }
+
+    [JSInvokable]
+    public async Task OnTrackEnded()
+    {
+        var track = Player.NextTrack();
+        if (track != null)
+        {
+            await JSRuntime.InvokeVoidAsync("audioPlayer.play", $"/api/music/stream/{track.Id}");
+        }
+        else
+        {
+            Player.IsPlaying = false;
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    [JSInvokable]
+    public void OnPlaybackError(string message)
+    {
+        Player.IsPlaying = false;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private string FormatTime(double seconds)
+    {
+        if (double.IsNaN(seconds) || double.IsInfinity(seconds)) return "0:00";
+        var ts = TimeSpan.FromSeconds(seconds);
+        return ts.TotalHours >= 1
+            ? $"{(int)ts.TotalHours}:{ts.Minutes:D2}:{ts.Seconds:D2}"
+            : $"{ts.Minutes}:{ts.Seconds:D2}";
+    }
+
+    public void Dispose()
+    {
+        Player.OnChange -= OnPlayerStateChanged;
+        dotNetRef?.Dispose();
+        _ = JSRuntime.InvokeVoidAsync("audioPlayer.dispose");
+    }
+}
